@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+    <meta charset="UTF-8">
+    <title>Log in with your account</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<div sec:authorize="isAuthenticated()">
+    <h4><a href="/logout">Выйти</a></h4>
+</div>
+<div>
+    <table border="1">
+        <thead>
+        <th>ID</th>
+        <th>UserName</th>
+        <th>Password</th>
+        <th>Roles</th>
+        <th>Actions</th>
+        </thead>
+        <tr th:each="user : ${allUsers}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.password}"></td>
+            <td>
+                <th:block th:each="role : ${user.getRoles()}">
+                    <div th:text="${role.name}"></div>
+                </th:block>
+            </td>
+            <td>
+                <form th:action="admin" method="post">
+                    <input type="hidden" name="userId" th:value="${user.id}"/>
+                    <input type="hidden" name="action" value="delete"/>
+                    <button type="submit">Delete</button>
+                </form>
+                <form th:action="@{admin/get/{id}(id=${user.id})}" method="get">
+                    <input type="hidden" name="userId" th:value="${user.id}"/>
+                    <input type="hidden" name="action" value="update"/>
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+    </table>
+    <h4><a href="/">Главная</a></h4>
+</div>
+</body>
+</html>
