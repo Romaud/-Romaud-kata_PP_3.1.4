@@ -2,18 +2,20 @@ package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.dao.RoleRepository;
 import ru.kata.spring.boot_security.demo.dao.UserRepository;
 import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -40,10 +42,8 @@ public class UserServiceImpl implements UserService {
         if (userFromDB != null) {
             return;
         }
-        Role role = new Role(1L, "ROLE_USER");
-        user.setRoles(Collections.singleton(role));
+        user.setRoles(Collections.singleton(roleRepository.getById(1L)));
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        roleRepository.save(role);
         userRepository.save(user);
     }
 
@@ -70,7 +70,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username);
+        Set<Role> roles = new HashSet<>(user.getRoles());
+        user.setRoles(roles);
+        return user;
     }
 }

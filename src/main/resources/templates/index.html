@@ -14,6 +14,8 @@
     </div>
     <div sec:authorize="isAuthenticated()">
         <h4><a href="/logout">Выйти</a></h4>
+    </div>
+    <div sec:authorize="${hasRole('USER')}">
         <h4><a href="/user">Информация (только пользователь)</a></h4>
     </div>
     <h4 sec:authorize="${hasRole('ADMIN')}">
