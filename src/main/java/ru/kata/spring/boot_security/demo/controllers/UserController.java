@@ -11,31 +11,11 @@ import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 @Controller
-public class RegistrationController {
-    @Autowired
-    private UserService userService;
-
+public class UserController {
     @GetMapping("/user")
     public String userInfo(@AuthenticationPrincipal User user, Model model) {
         System.out.println(user);
         model.addAttribute("userInfo", user);
         return "user";
-    }
-
-    @GetMapping("/registration")
-    public String registration(Model model) {
-        model.addAttribute("userForm", new User());
-
-        return "registration";
-    }
-
-    @PostMapping("/registration")
-    public String addUser(@ModelAttribute("userForm") User userForm, Model model) {
-        if (!userForm.getPassword().equals(userForm.getPasswordConfirm())) {
-            model.addAttribute("passwordError", "Пароли не совпадают");
-            return "registration";
-        }
-        userService.saveUser(userForm);
-        return "redirect:/";
     }
 }
