@@ -9,7 +9,7 @@
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
-<body>
+<body onload="getUsers()">
 <nav class="nav navbar-dark bg-dark justify-content-between p-2 px-4">
     <a class="navbar-brand text-white" th:object="${userInfo}">
         <b th:text="${userInfo.email}"></b> with roles:
@@ -40,7 +40,7 @@
             <div class="bg-light">
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#allUsers">Users table</a>
+                        <a class="nav-link active" id="mainTab" data-toggle="tab" href="#allUsers">Users table</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="tab" href="#newUser">New User</a>
@@ -66,118 +66,88 @@
                                     <th>Delete</th>
                                 </tr>
                                 </thead>
-                                <tbody>
-                                <tr th:each="user, status : ${allUsers}">
-                                    <td th:text="${user.id}"></td>
-                                    <td th:text="${user.username}"></td>
-                                    <td th:text="${user.surname}"></td>
-                                    <td th:text="${user.age}"></td>
-                                    <td th:text="${user.email}"></td>
-                                    <td>
-                                        <th:block th:each="role : ${user.getRoles()}">
-                                            <span th:text="${role.name.substring(5)}"></span>
-                                        </th:block>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-info" data-toggle="modal"
-                                                th:attr="data-target=${'#editModal' + status.index}">
-                                            Edit
-                                        </button>
-
-                                        <!--Модальное окно-->
-                                        <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
-                                             th:attr="id=${'editModal' + status.index}"
-                                             aria-labelledby="mySmallModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <form class="p-3 form-horizontal text-center" name="updateForm"
-                                                          th:action="@{admin/}" th:method="put">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Edit user</h5>
-                                                        </div>
-                                                        <div class="modal-body">
-
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8"><b>ID</b>
-                                                                    <input class="form-control" type="text" name="id"
-                                                                           th:value="${user.id}" readonly/>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8"><b>First name</b>
-                                                                    <input class="form-control" type="text"
-                                                                           name="username"
-                                                                           th:value="${user.username}"
-                                                                           placeholder="Username"/>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8"><b>Last name</b>
-                                                                    <input class="form-control" type="text"
-                                                                           name="surname"
-                                                                           th:value="${user.surname}"
-                                                                           placeholder="Surname"
-                                                                           required/>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8"><b>Age</b>
-                                                                    <input class="form-control" type="number" name="age"
-                                                                           th:value="${user.age}" min="0" max="127"
-                                                                           step="1"
-                                                                           placeholder="Age" required/>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8"><b>Email</b>
-                                                                    <input class="form-control" type="text" name="email"
-                                                                           th:value="${user.email}" placeholder="Email"
-                                                                           required/>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8"><b>Password</b>
-                                                                    <input class="form-control" type="password"
-                                                                           name="password"
-                                                                           placeholder="Password"/>
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label class="control-label col-8">
-                                                                    <b>Role</b>
-                                                                    <select class="form-control" size="2" multiple
-                                                                            th:value="${user.roles}"
-                                                                            name="roles">
-                                                                        <th:block
-                                                                                th:each="role : ${roles}">
-                                                                            <option th:value="${role.getId()}"
-                                                                                    th:text="${role.name.substring(5)}"></option>
-                                                                        </th:block>
-                                                                    </select>
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                    data-dismiss="modal">Close
-                                                            </button>
-                                                            <button type="submit"
-                                                                    class="btn btn-primary">Edit
-                                                            </button>
-                                                        </div>
-                                                    </form>
+                                <tbody id="mainTable">
+<!--                                Модальное окно-->
+                                <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
+                                     id="editModal"
+                                     aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content text-center">
+                                            <form class="p-3 form-horizontal" id="formEdit" name="updateForm">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit user</h5>
                                                 </div>
-                                            </div>
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8"><b>ID</b>
+                                                            <input class="form-control" type="text"
+                                                                   name="id" id="modalId" readonly/>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8"><b>First name</b>
+                                                            <input class="form-control" type="text"
+                                                                   name="username" id="modalUsername"
+                                                                   placeholder="Username"/>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8"><b>Last name</b>
+                                                            <input class="form-control" type="text"
+                                                                   name="surname" id="modalSurname"
+                                                                   placeholder="Surname"
+                                                                   required/>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8"><b>Age</b>
+                                                            <input class="form-control" type="number" n
+                                                                   ame="age" id="modalAge"
+                                                                   min="0" max="127" step="1"
+                                                                   placeholder="Age" required/>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8"><b>Email</b>
+                                                            <input class="form-control" type="text"
+                                                                   name="email" id="modalEmail"
+                                                                   placeholder="Email"
+                                                                   required/>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8"><b>Password</b>
+                                                            <input class="form-control" type="password"
+                                                                   name="password" id="modalPassword"
+                                                                   placeholder="Password"/>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="control-label col-8">
+                                                            <b>Role</b>
+                                                            <select class="form-control" size="2" multiple
+                                                                    name="roles" id="modalRoles">
+                                                                <th:block
+                                                                        th:each="role : ${roles}">
+                                                                    <option th:value="${role.getId()}"
+                                                                            th:text="${role.name.substring(5)}"></option>
+                                                                </th:block>
+                                                            </select>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                            data-dismiss="modal">Close
+                                                    </button>
+                                                    <button type="button" onclick="processUpdate()"
+                                                            class="btn btn-primary">Edit
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <form th:action="@{admin/{id}(id=${user.id})}" th:method="delete">
-                                            <input type="hidden" name="userId" th:value="${user.id}"/>
-                                            <input type="hidden" name="action" value="delete"/>
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                                 </tbody>
                             </table>
                         </div>
@@ -188,53 +158,53 @@
                             <h4>Add new user</h4>
                         </div>
                         <div class="bg-white">
-                            <form class="p-3 form-horizontal text-center" th:method="post" th:object="${userForm}">
+                            <form class="p-3 form-horizontal text-center" id="addUser">
                                 <div class="form-group">
                                     <label class="control-label col-3"><b>First name</b>
-                                        <input class="form-control" type="text" th:field="*{username}"
-                                               placeholder="Username" autofocus="true" required/>
+                                        <input class="form-control"
+                                               id="newUsername" placeholder="Username" autofocus="true" required/>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label col-3"><b>Last name</b>
-                                        <input class="form-control" type="text" th:field="*{surname}"
-                                               placeholder="Surname"
+                                        <input class="form-control" type="text"
+                                               id="newSurname" placeholder="Surname"
                                                required/>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label col-3"><b>Age</b>
-                                        <input class="form-control" type="number" th:field="*{age}"
-                                               min="0" max="127" step="1" placeholder="Age"
-                                               required/>
+                                        <input class="form-control" type="number"
+                                               min="1" max="127" step="1" placeholder="Age"
+                                               id="newAge" required/>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label col-3"><b>Email</b>
-                                        <input class="form-control" type="text" th:field="*{email}" placeholder="Email"
-                                               required/>
+                                        <input class="form-control" type="text" placeholder="Email"
+                                               id="newEmail" required/>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label col-3"><b>Password</b>
-                                        <input class="form-control" type="password" th:field="*{password}"
-                                               placeholder="Password" required/>
+                                        <input class="form-control" type="password"
+                                               id="newPassword" placeholder="Password" required/>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label col-3">
                                         <b>Role</b>
-                                        <select class="form-control" size="2" multiple th:field="*{roles}">
+                                        <select id="newRole" class="form-control" size="2" multiple>
                                             <th:block th:each="role : ${roles}">
-                                                <option th:value="${role.getId()}"
-                                                        th:text="${role.name.substring(5)}"></option>
+                                                <option th:text="${role.name.substring(5)}"></option>
                                             </th:block>
                                         </select>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label">
-                                        <input class="form-control btn btn-success" type="submit" value="Add new user"/>
+                                        <input class="form-control btn btn-success" type="button" id="addBtn"
+                                               onclick="processCreate()" value="Add new user"/>
                                     </label>
                                 </div>
                             </form>
@@ -245,7 +215,159 @@
         </div>
     </div>
 </div>
+<div>
+    <script>
+        //получение пользователя с id из БД с помощью fetch
+        //заполнение полей формы по их id значениями полученного пользователя
+        async function editButtonClick(id) {
+            const response = await fetch("/admin/users/" + id);
+            const user = await response.json();
+            console.log(user);
 
+            document.getElementById('modalId').value = user.id;
+            document.getElementById('modalUsername').value = user.username;
+            document.getElementById('modalSurname').value = user.surname;
+            document.getElementById('modalAge').value = user.age;
+            document.getElementById('modalEmail').value = user.email;
+            document.getElementById('modalRoles').value = user.roles;
+        }
+
+        //Обновление пользователя
+        //сохранение значений полей формы в переменную и передача их на сервер с помощью fetch
+        async function processUpdate() {
+            let body = {};
+            body.id = document.getElementById("modalId").value;
+            body.username = document.getElementById("modalUsername").value;
+            body.surname = document.getElementById("modalSurname").value;
+            body.age = document.getElementById("modalAge").value;
+            body.email = document.getElementById("modalEmail").value;
+            body.password = document.getElementById("modalPassword").value;
+            const users = document.getElementById("modalRoles");
+            body.roles = Array.from(users.options)
+                .filter(option => option.selected)
+                .map(option => option.text);
+            console.log(body.roles);
+
+            let response = await fetch("/admin/users/", {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const responseText = await response.json();
+                alert(responseText.info);
+            } else {
+                getUsers().then();
+                $('#editModal').modal('hide');
+            }
+        }
+
+
+        //запрос на удаление пользователя с id на сервер
+        function processDelete(id) {
+            fetch("/admin/users/" + id, {
+                method: "DELETE",
+            }).then(console.log).then(getUsers);
+        }
+
+        //Создание пользователя
+        //сохранение значений полей формы в переменную и передача их на сервер с помощью fetch
+        async function processCreate() {
+            let body = {};
+            body.username = document.getElementById("newUsername").value;
+            body.surname = document.getElementById("newSurname").value;
+            body.age = document.getElementById("newAge").value;
+            body.email = document.getElementById("newEmail").value;
+            body.password = document.getElementById("newPassword").value;
+            const users = document.getElementById("newRole");
+            body.roles = Array.from(users.options)
+                .filter(option => option.selected)
+                .map(option => option.value);
+            console.log(body.roles);
+
+            let response = await fetch("/admin/users/", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const responseText = await response.json();
+                alert(responseText.info);
+            } else {
+                getUsers().then();
+                $('.nav-tabs a[href="#allUsers"]').tab('show')
+            }
+        }
+        //получение списка пользователей из БД с помощью fetch
+        //создание ячеек таблицы и их заполнение
+        //обращение к тегу <tbody> с id mainTable
+        async function getUsers() {
+            // получаем объект ответа
+            const response = await fetch("/admin/users");
+            // из объекта ответа извлекаем текст ответа
+            const responseText = await response.json();
+            console.log(responseText);
+            let table = document.getElementById("mainTable");
+            table.innerHTML = "";
+            if (responseText.length > 0) {
+                let temp = "";
+                responseText.forEach((user) => {
+                    const userId = user.id;
+                    let tr = document.createElement("tr");
+                    let th = document.createElement("th");
+                    th.appendChild(document.createTextNode(userId));
+                    tr.appendChild(th);
+                    let td1 = document.createElement("td");
+                    td1.appendChild(document.createTextNode(user.username));
+                    tr.appendChild(td1);
+                    let td2 = document.createElement("td");
+                    td2.appendChild(document.createTextNode(user.surname));
+                    tr.appendChild(td2);
+                    let td3 = document.createElement("td");
+                    td3.appendChild(document.createTextNode(user.age));
+                    tr.appendChild(td3);
+                    let td4 = document.createElement("td");
+                    td4.appendChild(document.createTextNode(user.email));
+                    tr.appendChild(td4);
+                    let td5 = document.createElement("td");
+                    let roles = user.roles;
+                    for (let i = 0; i < roles.length; i++) {
+                        td5.appendChild(document.createTextNode(roles[i].name.substring(5).concat(" ")));
+                    }
+
+                    tr.appendChild(td5);
+
+                    let editButton = document.createElement("button");
+                    editButton.setAttribute("type", "button");
+                    editButton.setAttribute("class", "btn btn-info btn-sm");
+                    editButton.setAttribute("data-toggle", "modal");
+                    editButton.setAttribute("data-target", "#editModal");
+                    editButton.appendChild(document.createTextNode("Edit"));
+                    editButton.addEventListener("click", function () {
+                        editButtonClick(userId)
+                    });
+                    let dangerButton = document.createElement("button");
+                    dangerButton.setAttribute("type", "button");
+                    dangerButton.setAttribute("class", "btn btn-danger btn-sm");
+                    dangerButton.appendChild(document.createTextNode("Delete"));
+                    dangerButton.addEventListener("click", function () {
+                        processDelete(userId)
+                    });
+
+                    let td6 = document.createElement("td");
+                    td6.appendChild(editButton);
+                    tr.appendChild(td6);
+                    let td7 = document.createElement("td");
+                    td7.appendChild(dangerButton);
+                    tr.appendChild(td7);
+                    table.appendChild(tr);
+                })
+            }
+        }
+    </script>
+</div>
 <div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
