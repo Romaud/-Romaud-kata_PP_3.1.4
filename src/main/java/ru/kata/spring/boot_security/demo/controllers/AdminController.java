@@ -5,6 +5,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -39,7 +40,7 @@ public class AdminController {
     }
 
     @PutMapping("/admin")
-    public String updateUser(@ModelAttribute("userUpdate")User user) {
+    public String updateUser(@ModelAttribute("userUpdate") User user) {
         System.out.println("user for update: " + user);
         userService.update(user);
         return "redirect:/admin";
@@ -50,5 +51,17 @@ public class AdminController {
         System.out.println("User info from controller: " + userForm);
         userService.saveUser(userForm);
         return "redirect:/admin";
+    }
+
+    @GetMapping("/")
+    public String mainPage(@AuthenticationPrincipal User user) {
+        String redirect = "redirect:/user";
+        for (Role role : user.getRoles()) {
+            if (role.getName().contains("ADMIN")) {
+                redirect = ("redirect:/admin");
+                break;
+            }
+        }
+        return redirect;
     }
 }
